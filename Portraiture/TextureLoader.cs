@@ -34,12 +34,12 @@ namespace Portraiture
             string loadConfig = PortraitureMod.config.active;
 
             if (loadConfig == "none")
-                    activeFolder = 0;
+                activeFolder = 0;
             else
                 activeFolder = folders.Contains(loadConfig) ? folders.FindIndex(f => f == loadConfig) : (folders.Count > 1 ? 1 : 0);
 
-                saveConfig();
-            
+            saveConfig();
+
         }
 
         internal static void setPreset(string name, string folder)
@@ -62,11 +62,11 @@ namespace Portraiture
 
             if (PortraitureMod.config.presets is PresetCollection p)
             {
-                monitor.Log("Loaded Active Presets for " + string.Join(',',p.Presets.Select(pr => pr.Character + ":" + pr.Portraits)),LogLevel.Info);
+                monitor.Log("Loaded Active Presets for " + string.Join(',', p.Presets.Select(pr => pr.Character + ":" + pr.Portraits)), LogLevel.Info);
 
                 presets = p;
             }
-           
+
         }
 
         internal static Rectangle getSoureRectangle(Texture2D texture, int index = 0)
@@ -84,7 +84,7 @@ namespace Portraiture
 
             activeFolder = Math.Max(activeFolder, 0);
 
-            if(presets.Presets.FirstOrDefault(pr => pr.Character == name) is Preset pre)
+            if (presets.Presets.FirstOrDefault(pr => pr.Character == name) is Preset pre)
                 activeFolder = Math.Max(folders.IndexOf(pre.Portraits), 0);
 
             var folder = folders[activeFolder];
@@ -121,27 +121,36 @@ namespace Portraiture
             }
 
 
-                string season = Game1.currentSeason?.ToLower() ?? "spring";
+            string season = Game1.currentSeason?.ToLower() ?? "spring";
 
 
-                if (presets.Presets.FirstOrDefault(p => p.Character == name) is Preset preset && folders.Contains(preset.Portraits))
-                    folder = preset.Portraits;
+            if (presets.Presets.FirstOrDefault(p => p.Character == name) is Preset preset && folders.Contains(preset.Portraits))
+                folder = preset.Portraits;
 
 
-                if (Game1.currentLocation is GameLocation gl && gl.Name is string locname)
-                {
-                    if (pTextures.ContainsKey(folder + ">" + name + "_" + gl.Name + "_" + season))
-                        return pTextures[folder + ">" + name + "_" + gl.Name + "_" + season];
-                    else if (pTextures.ContainsKey(folders[activeFolder] + ">" + name + "_" + gl.Name))
-                        return pTextures[folder + ">" + name + "_" + gl.Name];
-                }
+            if (Game1.currentLocation is GameLocation gl && gl.Name is string locname)
+            {
+                if (pTextures.ContainsKey(folder + ">" + name + "_" + gl.Name + "_" + season))
+                    return pTextures[folder + ">" + name + "_" + gl.Name + "_" + season];
+                else if (pTextures.ContainsKey(folders[activeFolder] + ">" + name + "_" + gl.Name))
+                    return pTextures[folder + ">" + name + "_" + gl.Name];
+            }
 
-                if (pTextures.ContainsKey(folder + ">" + name + "_" + season))
-                    return pTextures[folder + ">" + name + "_" + season];
+            if (Game1.isFestival() && Game1.CurrentEvent.FestivalName != "")
+            {
+                string festname = Game1.CurrentEvent.FestivalName;
+                if (pTextures.ContainsKey(folder + ">" + name + "_" + festname))
+                    return pTextures[folder + ">" + name + "_" + festname];
+                else if (pTextures.ContainsKey(folders[activeFolder] + ">" + name + "_" + festname))
+                    return pTextures[folders[activeFolder] + ">" + name + "_" + festname];
+            }
 
-                if (pTextures.ContainsKey(folder + ">" + name))
-                    return pTextures[folder + ">" + name];
-           
+            if (pTextures.ContainsKey(folder + ">" + name + "_" + season))
+                return pTextures[folder + ">" + name + "_" + season];
+
+            if (pTextures.ContainsKey(folder + ">" + name))
+                return pTextures[folder + ">" + name];
+
             return null;
         }
 
@@ -222,20 +231,20 @@ namespace Portraiture
 
 
                     ScaledTexture2D scaled;
-                    
-                        scaled = ScaledTexture2D.FromTexture(Game1.getCharacterFromName(name).Portrait, texture, scale);
-                   
+
+                    scaled = ScaledTexture2D.FromTexture(Game1.getCharacterFromName(name).Portrait, texture, scale);
+
                     if (!pTextures.ContainsKey(folderName + ">" + name))
                         pTextures.Add(folderName + ">" + name, scaled);
                     else
                         pTextures[folderName + ">" + name] = scaled;
                 }
             }
-            
-            if(PortraitureMod.config.HPDOption)
+
+            if (PortraitureMod.config.HPDOption)
                 folders.Add("HDP");
 
-                if ((PortraitureMod.config.SideLoadHDPWhenInstalled && PortraitureMod.helper.ModRegistry.IsLoaded("tlitookilakin.HDPortraits")) ||  (PortraitureMod.config.SideLoadHDPWhenNotInstalled && !PortraitureMod.helper.ModRegistry.IsLoaded("tlitookilakin.HDPortraits")))
+            if ((PortraitureMod.config.SideLoadHDPWhenInstalled && PortraitureMod.helper.ModRegistry.IsLoaded("tlitookilakin.HDPortraits")) || (PortraitureMod.config.SideLoadHDPWhenNotInstalled && !PortraitureMod.helper.ModRegistry.IsLoaded("tlitookilakin.HDPortraits")))
                 foreach (var file in Directory.GetParent(PortraitureMod.helper.DirectoryPath).EnumerateFiles("manifest.json", SearchOption.AllDirectories))
                 {
                     try
@@ -263,18 +272,18 @@ namespace Portraiture
                                         ScaledTexture2D scaled;
                                         try
                                         {
-                                                if(Game1.getCharacterFromName(name) is NPC ch && ch.Portrait is Texture2D ptex)
-                                            scaled = ScaledTexture2D.FromTexture(ptex, texture, scale);
-                                                else
-                                                    scaled = ScaledTexture2D.FromTexture(Game1.getCharacterFromName("Pierre").Portrait, texture, scale);
-                                            }
-                                            catch
-                                            {
+                                            if (Game1.getCharacterFromName(name) is NPC ch && ch.Portrait is Texture2D ptex)
+                                                scaled = ScaledTexture2D.FromTexture(ptex, texture, scale);
+                                            else
                                                 scaled = ScaledTexture2D.FromTexture(Game1.getCharacterFromName("Pierre").Portrait, texture, scale);
+                                        }
+                                        catch
+                                        {
+                                            scaled = ScaledTexture2D.FromTexture(Game1.getCharacterFromName("Pierre").Portrait, texture, scale);
 
-                                            }
+                                        }
 
-                                            if (!pTextures.ContainsKey(folderName + ">" + name))
+                                        if (!pTextures.ContainsKey(folderName + ">" + name))
                                             pTextures.Add(folderName + ">" + name, scaled);
                                         else
                                             pTextures[folderName + ">" + name] = scaled;
@@ -349,7 +358,7 @@ namespace Portraiture
             if (folders.Count <= activeFolder)
                 activeFolder = 0;
 
-                saveConfig();
+            saveConfig();
         }
 
         private static void saveConfig()
